@@ -46,7 +46,7 @@ export const UpdateOvhSyncSchema = GenericUpdateSecretSyncFieldsSchema(SecretSyn
 
 export const OvhSyncListItemSchema = z
   .object({
-    name: z.literal("OVH"),
+    name: z.literal("OVHcloud"),
     connection: z.literal(AppConnection.OVH),
     destination: z.literal(SecretSync.OVH),
     canImportSecrets: z.literal(true),

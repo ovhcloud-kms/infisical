@@ -2925,7 +2925,8 @@ export const AppConnections = {
       certificate:
         "The PEM-encoded public certificate issued by OVH OKMS for client certificate authentication (including the -----BEGIN/END CERTIFICATE----- markers).",
       okmsDomain: "The OKMS base URL (e.g., 'https://ca-east-bhs.okms.ovh.net').",
-      okmsId: "The OKMS instance identifier from the OVH Control Panel, used as a path segment in all API calls."
+      okmsId: "The OKMS instance identifier from the OVH Control Panel, used as a path segment in all API calls.",
+      token: "The access token used to authenticate to the OKMS REST API"
     },
     SNOWFLAKE: {
       account: "The Snowflake account identifier (e.g., xy12345.us-east-1).",

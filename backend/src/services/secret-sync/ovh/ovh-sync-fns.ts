@@ -1,10 +1,9 @@
 import { isAxiosError } from "axios";
-import https from "https";
 
 import { request } from "@app/lib/config/request";
 import { deepEqual } from "@app/lib/fn/object";
 import { validateSsrfUrl } from "@app/lib/validator";
-import { getOvhHttpsAgent } from "@app/services/app-connection/ovh";
+import { getOvhRequestOptions, TOvhRequestOptions } from "@app/services/app-connection/ovh";
 import { SecretSyncError } from "@app/services/secret-sync/secret-sync-errors";
 import { matchesSchema } from "@app/services/secret-sync/secret-sync-fns";
 import { TSecretMap } from "@app/services/secret-sync/secret-sync-types";
@@ -62,14 +61,15 @@ const readSecret = async (
   okmsDomain: string,
   okmsId: string,
   path: string,
-  httpsAgent: https.Agent
+  requestOptions: TOvhRequestOptions
 ): Promise<TOvhSecretRead> => {
   try {
     await validateSsrfUrl(okmsDomain);
     const { data } = await request.get<TOvhGetSecretResponse>(
       `${getSecretUrl(okmsDomain, okmsId, path)}?includeData=true`,
       {
-        httpsAgent,
+        httpsAgent: requestOptions.httpsAgent,
+        headers: requestOptions.headers,
         timeout: REQUEST_TIMEOUT_MS
       }
     );
@@ -91,16 +91,17 @@ const createSecret = async (
   okmsId: string,
   path: string,
   data: Record<string, string>,
-  httpsAgent: https.Agent
+  requestOptions: TOvhRequestOptions
 ) => {
   await validateSsrfUrl(okmsDomain);
   return request.post(
     `${okmsDomain}/api/${encodeURIComponent(okmsId)}/v2/secret`,
     { path, version: { data } },
     {
-      httpsAgent,
+      httpsAgent: requestOptions.httpsAgent,
       timeout: REQUEST_TIMEOUT_MS,
       headers: {
+        ...requestOptions.headers,
         "Content-Type": "application/json",
         accept: "application/json"
       }
@@ -114,7 +115,7 @@ const updateSecret = async (
   path: string,
   data: Record<string, string>,
   cas: number | null,
-  httpsAgent: https.Agent
+  requestOptions: TOvhRequestOptions
 ) => {
   await validateSsrfUrl(okmsDomain);
   const base = getSecretUrl(okmsDomain, okmsId, path);
@@ -123,9 +124,10 @@ const updateSecret = async (
     url,
     { version: { data } },
     {
-      httpsAgent,
+      httpsAgent: requestOptions.httpsAgent,
       timeout: REQUEST_TIMEOUT_MS,
       headers: {
+        ...requestOptions.headers,
         "Content-Type": "application/json",
         accept: "application/json"
       }
@@ -144,18 +146,18 @@ const writeSecretBundle = async (
   const { connection, destinationConfig } = secretSync;
   const path = String(destinationConfig.path);
   const { okmsDomain, okmsId } = connection.credentials;
-  const httpsAgent = getOvhHttpsAgent(connection);
+  const requestOptions = getOvhRequestOptions(connection);
 
   try {
-    const { exists, data: existingData, currentVersion } = await readSecret(okmsDomain, okmsId, path, httpsAgent);
+    const { exists, data: existingData, currentVersion } = await readSecret(okmsDomain, okmsId, path, requestOptions);
     const desiredData = buildDesiredBundle(existingData);
 
     if (deepEqual(existingData, desiredData)) return;
 
     if (exists) {
-      await updateSecret(okmsDomain, okmsId, path, desiredData, currentVersion, httpsAgent);
+      await updateSecret(okmsDomain, okmsId, path, desiredData, currentVersion, requestOptions);
     } else {
-      await createSecret(okmsDomain, okmsId, path, desiredData, httpsAgent);
+      await createSecret(okmsDomain, okmsId, path, desiredData, requestOptions);
     }
   } catch (error) {
     throw new SecretSyncError({ error: sanitizeOvhError(error) });
@@ -192,10 +194,10 @@ export const OvhSyncFns = {
     const { connection, destinationConfig } = secretSync;
     const path = String(destinationConfig.path);
     const { okmsDomain, okmsId } = connection.credentials;
-    const httpsAgent = getOvhHttpsAgent(connection);
+    const requestOptions = getOvhRequestOptions(connection);
 
     try {
-      const { data } = await readSecret(okmsDomain, okmsId, path, httpsAgent);
+      const { data } = await readSecret(okmsDomain, okmsId, path, requestOptions);
       return Object.fromEntries(Object.entries(data).map(([key, value]) => [key, { value }]));
     } catch (error) {
       throw new SecretSyncError({ error: sanitizeOvhError(error) });
