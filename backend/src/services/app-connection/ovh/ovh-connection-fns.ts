@@ -61,12 +61,12 @@ const normalizeOvhOkmsDomain = (okmsDomain: string) => {
     url = new URL(normalized);
   } catch {
     throw new BadRequestError({
-      message: "OKMS domain must be a valid URL "
+      message: "OVHcloud KMS domain must be a valid URL "
     });
   }
 
   if (url.protocol !== "https:") {
-    throw new BadRequestError({ message: "OKMS domain must be a valid URL (e.g. https://eu-west-rbx.okms.ovh.net)" });
+    throw new BadRequestError({ message: "OVHcloud KMS domain must be a valid URL (e.g. https://eu-west-rbx.okms.ovh.net)" });
   }
 
   return normalized;

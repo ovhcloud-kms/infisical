@@ -32,12 +32,12 @@ const sanitizeOvhError = (error: unknown): Error => {
     if (body?.error_code !== undefined) parts.push(`code=${body.error_code}`);
     if (body?.errors?.length) parts.push(body.errors.join("; "));
     if (body?.request_id) parts.push(`requestId=${body.request_id}`);
-    return new Error(`OVH OKMS request failed${parts.length ? `: ${parts.join(" ")}` : ""}`);
+    return new Error(`OVHcloud KMS request failed${parts.length ? `: ${parts.join(" ")}` : ""}`);
   }
-  return new Error("OVH OKMS request failed");
+  return new Error("OVHcloud KMS request failed");
 };
 
-// Shape of `GET /v2/secret/{path}?includeData=true` per OVH OKMS swagger.
+// Shape of `GET /v2/secret/{path}?includeData=true` per OVHcloud KMS swagger.
 type TOvhGetSecretResponse = {
   metadata?: { currentVersion?: number };
   version?: { data?: Record<string, unknown> };
@@ -135,7 +135,7 @@ const updateSecret = async (
   );
 };
 
-// OVH OKMS stores all keys of a path in a single versioned bundle; any change
+// OVHcloud KMS stores all keys of a path in a single versioned bundle; any change
 // requires rewriting the whole bundle. Callers describe the desired bundle as
 // a pure function of the existing bundle; this helper decides whether to skip,
 // create, or CAS-update based on what's actually on the remote.
