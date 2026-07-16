@@ -510,7 +510,7 @@ export const APP_CONNECTION_MAP: Record<
     description: "GraphQL API and data access for Hasura Cloud."
   },
   [AppConnection.OVH]: {
-    name: "OVH Cloud",
+    name: "OVHcloud",
     image: "OVH.png",
     category: "CLOUD",
     description: "Account and service access for OVHcloud."
@@ -735,6 +735,8 @@ export const getAppConnectionMethodDetails = (method: TAppConnection["method"]) 
       return { name: "Basic Auth", icon: faLock };
     case OVHConnectionMethod.Certificate:
       return { name: "Certificate", icon: faCertificate };
+    case OVHConnectionMethod.Token:
+      return { name: "Token", icon: faKey };
     case F5BigIpConnectionMethod.BasicAuth:
       return { name: "Basic Auth", icon: faLock };
     default:
